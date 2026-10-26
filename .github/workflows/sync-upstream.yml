@@ -1,0 +1,31 @@
+name: Sync with Upstream
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'   # 每周一 UTC 03:00 (北京时间 11:00) 自动同步
+  workflow_dispatch:       # 允许手动触发
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync fork with upstream
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # 克隆你自己的仓库
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git repo
+          cd repo
+          
+          # 添加上游仓库并拉取 master 分支
+          git remote add upstream https://github.com/sansan0/TrendRadar.git
+          git fetch upstream master --depth=1
+          git checkout master
+          
+          # 合并并推送
+          git merge upstream/master --allow-unrelated-histories
+          git push origin master
